@@ -1,22 +1,22 @@
 %%Script for Question 2
 allData=zeros(4,1440000);
 
-load('../Data/Data_Eval_E_1.mat');
+load('../dataset/Data_Eval_E_1.mat');
 allData(1,:)=data;
 spikeTimes1=spikeTimes;
 spikeClass1=spikeClass;
 
-load('../Data/Data_Eval_E_2.mat');
+load('../dataset/Data_Eval_E_2.mat');
 allData(2,:)=data;
 spikeTimes2=spikeTimes;
 spikeClass2=spikeClass;
 
-load('../Data/Data_Eval_E_3.mat');
+load('../dataset/Data_Eval_E_3.mat');
 allData(3,:)=data;
 spikeTimes3=spikeTimes;
 spikeClass3=spikeClass;
 
-load('../Data/Data_Eval_E_4.mat');
+load('../dataset/Data_Eval_E_4.mat');
 allData(4,:)=data;
 spikeTimes4=spikeTimes;
 spikeClass4=spikeClass;
