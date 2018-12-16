@@ -1,6 +1,6 @@
 %% Initialization
-files = ['../Data/Data_Test_1.mat';'../Data/Data_Test_2.mat';'../Data/Data_Test_3.mat';'../Data/Data_Test_4.mat'; ...
-        '../Data/Data_Test_5.mat'; '../Data/Data_Test_6.mat'; '../Data/Data_Test_7.mat'; '../Data/Data_Test_8.mat'];
+files = ['../dataset/Data_Test_1.mat';'../dataset/Data_Test_2.mat';'../dataset/Data_Test_3.mat';'../dataset/Data_Test_4.mat'; ...
+        '../dataset/Data_Test_5.mat'; '../dataset/Data_Test_6.mat'; '../dataset/Data_Test_7.mat'; '../dataset/Data_Test_8.mat'];
 
 spikeNumbers=zeros(8,1);
 allData=zeros(8,1440000);
