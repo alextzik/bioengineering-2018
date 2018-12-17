@@ -1,4 +1,4 @@
-%{
+
 %% Initialization
 files = ['../dataset/Data_Eval_E_1.mat'; '../dataset/Data_Eval_E_2.mat'; '../dataset/Data_Eval_E_3.mat'; '../dataset/Data_Eval_E_4.mat'];
 
@@ -36,7 +36,7 @@ for i=1:1:4
     end
 end
 
-%spikeTimesEst {estimation of when has a spike appeared} initialization
+%spikeTimesEst {estimation of when a spike did appear} initialization
 spikeTimesEst = cell(4,1);
 for i=1:1:4
     spikeTimesEst{i} = zeros(measuredNumSpikes(i),1);
@@ -66,19 +66,19 @@ for j=1:1:4
     for i=1:1:length(spikeTimesEst{j})
        k=spikeTimesEst{j}(i);
        l=0;
-       while (allData(1, k-l)<=allData(1, k-l+1))
+       while (allData(j, k-l)<=allData(j, k-l+1))
             l=l+1;
        end
        t=0;
-       while ((allData(1, k+t)>=allData(1, k) && allData(1, k+t)>=allData(1, k+t-1)))
+       while ((allData(j, k+t)>=allData(j, k) && allData(j, k+t)>=allData(j, k+t-1)))
             t=t+1;
        end
-       if (allData(1, k-l)<=-allData(1, k))
+       if (allData(j, k-l)<=-allData(j, k))
            centers(i)=k-l;
        else
            centers(i)=k+t;
        end
-       spikesEst{j}(i,:)=allData(1, centers(i)-31:centers(i)+32);
+       spikesEst{j}(i,:)=allData(j, centers(i)-31:centers(i)+32);
        %spikeTimesNewEst_1(i) = centers(i);
     end
     figure()
@@ -113,8 +113,7 @@ for m=1:1:4
        end
     end
 end
-%}
-load('eval-data.mat');
+
 disp("Q2.4")
 %% Q2.4
 attr = cell(4,1);
@@ -122,24 +121,40 @@ for i=1:1:4
     %let's begin with two attributes
     attr{i} = zeros(length(spikesEst{i}(:,64)),2);
     for j=1:1:length(spikesEst{i}(:,64))
-        attr{i}(j,1) = max(spikesEst{i}(j,:));
+        %attr{1} peak to peak amplitude
+        attr{i}(j,1) = peak2peak(spikesEst{i}(j,:));
+        %attr{2} zero crossing frequency
         for k=1:1:63
             if (spikesEst{i}(j,k)*spikesEst{i}(j,k+1) < 0)
                 attr{i}(j,2) = attr{i}(j,2) + 1;
             end
         end
+        %atrr{3} median frequency
+        attr{i}(j,3) = medfreq(spikesEst{i}(j,:));
+        %attr{4} power of the signal
+        attr{i}(j,4) = sum(spikesEst{i}(j,:).^2);
+        %attr{5} mean of the signal
+        attr{i}(j,5) = mean(spikesEst{i}(j,:));
+        %attr{6} variance of the signal
+        attr{i}(j,6) = var(spikesEst{i}(j,:));
+        %attr{7} maximum diff between two consecutive values
+        attr{i}(j,7) = max(diff(spikesEst{i}(j,:)));
+        %attr{8} trapezoid integral of signal
+        attr{i}(j,8) = trapz(spikesEst{i}(j,:));
+        %attr{9} fft max appearing frequency
+        [value,index] = max(abs(fft(spikesEst{i}(j,:))));
+        attr{i}(j,9) = index;
     end
+    %attr{i} = mapminmax(attr{i},0,1);
     figure()
-    plot(attr{i}(:,1), attr{i}(:,2), 'o');
+    scatter(attr{i}(:,1), attr{i}(:,2));
 end
 %% Q2.5
 acc = zeros(4,1);
+data = cell(4,1);
 for i=1:1:4
-   data = zeros(length(spikesCounted{i}),2);
-   for j=1:1:length(spikesCounted{i})
-       data(j,:) = attr{i}(spikesCounted{i}(j),:);
-   end
-   acc(i) = MyClassify(data,spikeClass{i}(:));
+   data{i} = attr{i}(spikesCounted{i}(:),:);
+   acc(i) = MyClassify(data{i},spikeClass{i}(:));
 end
 
 disp(acc);
