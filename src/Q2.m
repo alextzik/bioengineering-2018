@@ -35,7 +35,7 @@ for i=1:1:4
     end
 end
 
-%spikeTimesEst initialization
+%spikeTimesEst {estimation of when has a spike appeared} initialization
 spikeTimesEst = cell(4,1);
 for i=1:1:4
     spikeTimesEst{i} = zeros(measuredNumSpikes(i),1);
@@ -58,7 +58,7 @@ end
 
 
 %% Q2.2
-%spikeTimesNewEst_1=zeros(measuredNumSpikes(1),1);
+%spikeEst {4-cell matrix, containing arrays that display the waveforms of all the measured spikes}
 spikesEst = cell(4,1);
 for j=1:1:4
     spikesEst{j} = zeros(length(spikeTimesEst{j}),64);
@@ -87,26 +87,32 @@ end
 
 
 %% Q2.3
-correctlyFoundspikes=zeros(4,1);
-if (length(spikeTimes1)>length(spikeTimesEst_1))
-    timesofSpikesCounted1=zeros(length(spikeTimesEst_1),1);
-    realTimesofSpikesCounted=zeros(length(spikeTimesEst_1),1);
-else
-    timesofSpikesCounted1=zeros(length(spikeTimes1),1);
-    realTimesofSpikesCounted=zeros(length(spikeTimes1),1);
-end 
-k=1;
-for i=1:1:length(spikeTimes1)
-   d=inf;
-   for j=1:1:length(spikeTimesEst_1)
-      if(abs(spikeTimesEst_1(j)-spikeTimes1(i))<d && ~ismember(spikeTimesEst_1(j), timesofSpikesCounted1))
-          d=abs(spikeTimesEst_1(j)-spikeTimes1(i));
-          timesofSpikesCounted1(k)=spikeTimesEst_1(j);
-          correctlyFoundspikes(1)=correctlyFoundspikes(1)+1;
-          realTimesofSpikesCounted(k)=spikeTimes1(i);
-          k=k+1;
-      end
-   end
+correctSpikes = zeros(4,1);
+spikesCounted = cell(4,1);
+realSpikesCounted = cell(4,1);
+
+for m=1:1:4
+    %initialize spikesCounted {spikes correlated to the real ones} 
+    if (length(spikeTimes{m})>length(spikeTimesEst{m}))
+        spikesCounted{m}=zeros(length(spikeTimesEst{m}),1);
+    else
+        spikesCounted{m}=zeros(length(spikeTimes{m}),1);
+    end 
+    %for every real spike, find one of the measured ones to correlate to
+    for i=1:1:length(spikeTimes{m})
+       d=inf;
+       j=1;
+       while(j<=i && j<length(spikeTimesEst{m}))
+          %if the spike is the closest one to the currently real examined
+          %and it wasn't chosen before, correlate it now
+          if(abs(spikeTimesEst{m}(j)-spikeTimes{m}(i))<d && ~ismember(spikeTimesEst{m}(j), spikesCounted{m}))
+              d=abs(spikeTimesEst{m}(j)-spikeTimes{m}(i));
+              spikesCounted{m}(i)=spikeTimesEst{m}(j);
+              correctSpikes(m)=correctSpikes(m)+1;
+          end
+          j = j+1;
+       end
+    end
 end
 %%Needs to be done for the other 3 files
 
@@ -136,7 +142,7 @@ end
 
 %% Q2.5
 for i=1:1:length(spikeTimes1)
-   if(~ismember(spikeTimes1(1,i),realTimesofSpikesCounted))
+   if(~ismember(spikeTimes1(1,i),realSpikesCounted))
        spikeClass1(i)=0;
    end
 end
