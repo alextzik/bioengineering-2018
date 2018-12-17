@@ -3,7 +3,7 @@
 ## Comments
 
 To test Q2.4 & Q2.5 comment the other segments and add `load('eval-data.mat');` before Q2.4,
-so the script can ran faster
+so the script can run faster
 
 ### Spike sorting resources:
 - http://www.scholarpedia.org/article/Spike_sorting
