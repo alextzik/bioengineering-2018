@@ -1,3 +1,4 @@
+%{
 %% Initialization
 files = ['../dataset/Data_Eval_E_1.mat'; '../dataset/Data_Eval_E_2.mat'; '../dataset/Data_Eval_E_3.mat'; '../dataset/Data_Eval_E_4.mat'];
 
@@ -17,7 +18,7 @@ spikeClass = spike_Class;
 clear spike_Times spike_Class;
 
 k=@(sigma)(1.861248757651653+0.250156158913673./sigma-0.008006893531367./(sigma.*sigma)-2.410871628915119e-05/(sigma.*sigma.*sigma));
-
+disp("Q2.1")
 %% Q2.1
 sigmas=zeros(4,1);
 measuredNumSpikes=zeros(4,1);
@@ -55,8 +56,7 @@ for i=1:4
        end
     end
 end
-
-
+disp("Q2.2")
 %% Q2.2
 %spikeEst {4-cell matrix, containing arrays that display the waveforms of all the measured spikes}
 spikesEst = cell(4,1);
@@ -85,11 +85,10 @@ for j=1:1:4
     plot(1:1:64, spikesEst{j}(:,:));
 end
 
-
+disp("Q2.3")
 %% Q2.3
 correctSpikes = zeros(4,1);
 spikesCounted = cell(4,1);
-realSpikesCounted = cell(4,1);
 
 for m=1:1:4
     %initialize spikesCounted {spikes correlated to the real ones} 
@@ -107,44 +106,40 @@ for m=1:1:4
           %and it wasn't chosen before, correlate it now
           if(abs(spikeTimesEst{m}(j)-spikeTimes{m}(i))<d && ~ismember(spikeTimesEst{m}(j), spikesCounted{m}))
               d=abs(spikeTimesEst{m}(j)-spikeTimes{m}(i));
-              spikesCounted{m}(i)=spikeTimesEst{m}(j);
-              correctSpikes(m)=correctSpikes(m)+1;
+              spikesCounted{m}(i) = j;
+              correctSpikes(m) = correctSpikes(m)+1;
           end
           j = j+1;
        end
     end
 end
-%%Needs to be done for the other 3 files
-
+%}
+load('eval-data.mat');
+disp("Q2.4")
 %% Q2.4
-maxVals1=zeros(length(spikeTimesEst_1),1);
-minVals1=zeros(length(spikeTimesEst_1),1);
-crossingTimes=zeros(length(spikeTimesEst_1),1);
-timeofChange=zeros(length(spikeTimesEst_1),1);
-for i=1:1:length(spikeTimesEst_1)
-    maxVals1(i)=max(SpikesEst_1(i,:));
-    minVals1(i)=min(SpikesEst_1(i,:));
-    for j=1:1:size(SpikesEst_1,2)-1
-       if(SpikesEst_1(i,j)>=0 && SpikesEst_1(i, j+1)<=0)
-          crossingTimes(i)=crossingTimes(i)+1;
-       end
+attr = cell(4,1);
+for i=1:1:4
+    %let's begin with two attributes
+    attr{i} = zeros(length(spikesEst{i}(:,64)),2);
+    for j=1:1:length(spikesEst{i}(:,64))
+        attr{i}(j,1) = max(spikesEst{i}(j,:));
+        for k=1:1:63
+            if (spikesEst{i}(j,k)*spikesEst{i}(j,k+1) < 0)
+                attr{i}(j,2) = attr{i}(j,2) + 1;
+            end
+        end
     end
-    for j=32:1:63
-       if((SpikesEst_1(i,j)>=0 && SpikesEst_1(i, j+1)<=0) || SpikesEst_1(i,j)<=0 && SpikesEst_1(i, j+1)>=0)
-          timeofChange(i)=j-32;
-          break;
-       end
-    end
+    figure()
+    plot(attr{i}(:,1), attr{i}(:,2), 'o');
 end
-
-%Needs to be done for the other 3 files as well
-
-
 %% Q2.5
-for i=1:1:length(spikeTimes1)
-   if(~ismember(spikeTimes1(1,i),realSpikesCounted))
-       spikeClass1(i)=0;
+acc = zeros(4,1);
+for i=1:1:4
+   data = zeros(length(spikesCounted{i}),2);
+   for j=1:1:length(spikesCounted{i})
+       data(j,:) = attr{i}(spikesCounted{i}(j),:);
    end
+   acc(i) = MyClassify(data,spikeClass{i}(:));
 end
 
-perc1=MyClassify(dataset1, spikeClass1(find(spikeClass1)))
+disp(acc);
