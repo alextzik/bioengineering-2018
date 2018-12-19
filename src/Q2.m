@@ -65,18 +65,12 @@ for j=1:1:4
     centers=zeros(length(spikeTimesEst{j}),1);
     for i=1:1:length(spikeTimesEst{j})
        k=spikeTimesEst{j}(i);
-       l=0;
-       while (allData(j, k-l)<=allData(j, k-l+1))
-            l=l+1;
-       end
-       t=0;
-       while ((allData(j, k+t)>=allData(j, k) && allData(j, k+t)>=allData(j, k+t-1)))
-            t=t+1;
-       end
-       if (allData(j, k-l)<=-allData(j, k))
-           centers(i)=k-l;
+       [minimum, minIndex] = min(allData(j,k-31:k+32));
+       [maximum, maxIndex] = max(allData(j,k-31:k+32));
+       if (minIndex < maxIndex)
+           centers(i) = minIndex + k-32 -1;
        else
-           centers(i)=k+t;
+           centers(i) = maxIndex + k-32 -1;
        end
        spikesEst{j}(i,:)=allData(j, centers(i)-31:centers(i)+32);
        %spikeTimesNewEst_1(i) = centers(i);
