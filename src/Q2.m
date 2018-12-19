@@ -1,4 +1,3 @@
-
 %% Initialization
 files = ['../dataset/Data_Eval_E_1.mat'; '../dataset/Data_Eval_E_2.mat'; '../dataset/Data_Eval_E_3.mat'; '../dataset/Data_Eval_E_4.mat'];
 
@@ -81,7 +80,6 @@ end
 
 disp("Q2.3")
 %% Q2.3
-correctSpikes = zeros(4,1);
 spikesCounted = cell(4,1);
 
 for m=1:1:4
@@ -98,10 +96,9 @@ for m=1:1:4
        while(j<=i && j<length(spikeTimesEst{m}))
           %if the spike is the closest one to the currently real examined
           %and it wasn't chosen before, correlate it now
-          if(abs(spikeTimesEst{m}(j)-spikeTimes{m}(i))<d && ~ismember(spikeTimesEst{m}(j), spikesCounted{m}))
+          if(abs(spikeTimesEst{m}(j)-spikeTimes{m}(i))<d && ~ismember(j, spikesCounted{m}))
               d=abs(spikeTimesEst{m}(j)-spikeTimes{m}(i));
               spikesCounted{m}(i) = j;
-              correctSpikes(m) = correctSpikes(m)+1;
           end
           j = j+1;
        end
@@ -138,6 +135,7 @@ for i=1:1:4
         %attr{9} fft max appearing frequency
         [value,index] = max(abs(fft(spikesEst{i}(j,:))));
         attr{i}(j,9) = index;
+        
     end
     %attr{i} = mapminmax(attr{i},0,1);
     figure()
