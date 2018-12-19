@@ -21,32 +21,16 @@ disp("Q2.1")
 %% Q2.1
 sigmas=zeros(4,1);
 measuredNumSpikes=zeros(4,1);
+%spikeTimesEst {estimation of when a spike did appear} initialization
+spikeTimesEst = cell(4,1);
 for i=1:1:4
+    count=0;
     sigmas(i)=median(abs(allData(i,:)))/0.6745;
     T=k(sigmas(i))*sigmas(i);
     previousMeasuredSpike=0;
     for m=1:1:1440000
        if ((allData(i,m))>T && previousMeasuredSpike==0)
            measuredNumSpikes(i)=measuredNumSpikes(i)+1;
-           previousMeasuredSpike=m;
-       elseif (previousMeasuredSpike~=0 && (allData(i,m))<T)
-           previousMeasuredSpike=0;
-       end
-    end
-end
-
-%spikeTimesEst {estimation of when a spike did appear} initialization
-spikeTimesEst = cell(4,1);
-for i=1:1:4
-    spikeTimesEst{i} = zeros(measuredNumSpikes(i),1);
-end
-
-for i=1:4
-    T=k(sigmas(i))*sigmas(i);
-    previousMeasuredSpike=0;
-    count=0;
-    for m=1:1:1440000
-       if ((allData(i,m))>=T && previousMeasuredSpike==0)
            count=count+1;
            spikeTimesEst{i}(count)=m;
            previousMeasuredSpike=m;
@@ -55,6 +39,7 @@ for i=1:4
        end
     end
 end
+
 disp("Q2.2")
 %% Q2.2
 %spikeEst {4-cell matrix, containing arrays that display the waveforms of all the measured spikes}
@@ -83,25 +68,14 @@ disp("Q2.3")
 spikesCounted = cell(4,1);
 
 for m=1:1:4
-    %initialize spikesCounted {spikes correlated to the real ones} 
-    if (length(spikeTimes{m})>length(spikeTimesEst{m}))
-        spikesCounted{m}=zeros(length(spikeTimesEst{m}),1);
-    else
-        spikesCounted{m}=zeros(length(spikeTimes{m}),1);
-    end 
+    %initialize spikesCounted {spikes correlated to the real ones}
+    N = min(length(spikeTimes{m}), length(spikeTimesEst{m}));
+    spikesCounted{m}=zeros(N,1);
     %for every real spike, find one of the measured ones to correlate to
     for i=1:1:length(spikeTimes{m})
-       d=inf;
-       j=1;
-       while(j<=i && j<length(spikeTimesEst{m}))
-          %if the spike is the closest one to the currently real examined
-          %and it wasn't chosen before, correlate it now
-          if(abs(spikeTimesEst{m}(j)-spikeTimes{m}(i))<d && ~ismember(j, spikesCounted{m}))
-              d=abs(spikeTimesEst{m}(j)-spikeTimes{m}(i));
-              spikesCounted{m}(i) = j;
-          end
-          j = j+1;
-       end
+        if (i <= N)
+            [minimum, spikesCounted{m}(i)] = min(abs(spikeTimesEst{m}(:)-spikeTimes{m}(i)));
+        end
     end
 end
 
@@ -146,6 +120,7 @@ acc = zeros(4,1);
 data = cell(4,1);
 for i=1:1:4
    data{i} = attr{i}(spikesCounted{i}(:),:);
+   spikeClass{i} = spikeClass{i}(1:length(data{i}));
    acc(i) = MyClassify(data{i},spikeClass{i}(:));
 end
 
