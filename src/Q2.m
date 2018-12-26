@@ -21,20 +21,21 @@ disp("Q2.1")
 %% Q2.1
 sigmas=zeros(4,1);
 measuredNumSpikes=zeros(4,1);
+T = zeros(4,1);
 %spikeTimesEst {estimation of when a spike did appear} initialization
 spikeTimesEst = cell(4,1);
 for i=1:1:4
     count=0;
     sigmas(i)=median(abs(allData(i,:)))/0.6745;
-    T=k(sigmas(i))*sigmas(i);
+    T(i)=k(sigmas(i))*sigmas(i);
     previousMeasuredSpike=0;
     for m=1:1:1440000
-       if ((allData(i,m))>T && previousMeasuredSpike==0)
+       if ((allData(i,m))>T(i) && previousMeasuredSpike==0)
            measuredNumSpikes(i)=measuredNumSpikes(i)+1;
            count=count+1;
            spikeTimesEst{i}(count)=m;
            previousMeasuredSpike=m;
-       elseif (previousMeasuredSpike~=0 && (allData(i,m))<T)
+       elseif (previousMeasuredSpike~=0 && (allData(i,m))<T(i))
            previousMeasuredSpike=0;
        end
     end
@@ -89,10 +90,15 @@ for i=1:1:4
         %attr{1} peak to peak amplitude
         attr{i}(j,1) = peak2peak(spikesEst{i}(j,:));
         %attr{2} zero crossing frequency
+        count = 0;
         for k=1:1:63
             if (spikesEst{i}(j,k)*spikesEst{i}(j,k+1) < 0)
                 attr{i}(j,2) = attr{i}(j,2) + 1;
             end
+             if (spikesEst{i}(j,k) > T(i))
+                count = count + 1;
+            end
+            
         end
         %atrr{3} median frequency
         attr{i}(j,3) = medfreq(spikesEst{i}(j,:));
@@ -109,17 +115,59 @@ for i=1:1:4
         %attr{9} fft max appearing frequency
         [value,index] = max(abs(fft(spikesEst{i}(j,:))));
         attr{i}(j,9) = index;
-        
+        %attr{10} rms value
+        attr{i}(j,10) = rms(spikesEst{i}(j,:));
+        %attr{10} kurtosis
+        attr{i}(j,11) = kurtosis(spikesEst{i}(j,:));
+        %attr{12} distance between min and max
+        [value, minIndex] = min(spikesEst{i}(j,:));
+        [value, maxIndex] = max(spikesEst{i}(j,:));
+        attr{i}(j,12) = maxIndex - minIndex;
+        %attr{13} number of values above threshold
+        attr{i}(j,13) = count;
+        %attr{14} skewness
+        attr{i}(j,14) = skewness(spikesEst{i}(j,:));
     end
-    %attr{i} = mapminmax(attr{i},0,1);
+    data = mapminmax(attr{i}(spikesCounted{i}(:),:), 0, 1);
+    neuron_1 = data((spikeClass{i}(1:length(data)) == 1),:);
+    [coef, neuron_1_pca, lat] = pca(neuron_1);
+    neuron_2 = data((spikeClass{i}(1:length(data)) == 2),:);
+    [coef, neuron_2_pca, lat] = pca(neuron_2);
+    neuron_3 = data((spikeClass{i}(1:length(data)) == 3),:);
+    [coef, neuron_3_pca, lat] = pca(neuron_3);
+    %2D plot - selected power and kurtosis as attributes
     figure()
-    scatter(attr{i}(:,1), attr{i}(:,2));
+    plot(neuron_1(:,11), neuron_1(:,4),'.r',neuron_2(:,11), neuron_2(:,4), '.g',neuron_3(:,11), neuron_3(:,4), '.b');
+    title('2D plot - selected power and kurtosis as attributes')
+    legend({'neuron 1','neuron 2', 'neuron 3'},'Location','northeast')
+    %2D plot - selected first 2 principal components
+    figure()
+    plot(neuron_1_pca(:,1), neuron_1_pca(:,2),'.r',neuron_2_pca(:,1), neuron_2_pca(:,2), '.g',neuron_3_pca(:,1), neuron_3_pca(:,2), '.b');
+    title('2D plot - selected power and kurtosis as attributes')
+    legend({'neuron 1','neuron 2', 'neuron 3'},'Location','northeast')
+    %2D plot - selected last 2 principal components
+    figure()
+    plot(neuron_1_pca(:,13), neuron_1_pca(:,14),'.r',neuron_2_pca(:,13), neuron_2_pca(:,14), '.g',neuron_3_pca(:,13), neuron_3_pca(:,14), '.b');
+    title('2D plot - selected last 2 principal components')
+    legend({'neuron 1','neuron 2', 'neuron 3'},'Location','northeast')
+    %3D plot - selected first 3 principal components
+    figure()
+    scatter3(neuron_1_pca(:,1), neuron_1_pca(:,2), neuron_1_pca(:,3),'.r')
+    hold on
+    scatter3(neuron_2_pca(:,1), neuron_2_pca(:,2), neuron_2_pca(:,3),'.g')
+    hold on
+    scatter3(neuron_3_pca(:,1), neuron_3_pca(:,2), neuron_3_pca(:,3),'.b')
+    title('3D plot - selected first 3 principal components')
+    legend({'neuron 1','neuron 2', 'neuron 3'},'Location','northeast')
 end
+
 %% Q2.5
 acc = zeros(4,1);
 data = cell(4,1);
 for i=1:1:4
    data{i} = attr{i}(spikesCounted{i}(:),:);
+   [coef, data{i}, lat] = pca(data{i});
+   data{i} = data{i}(:,1:10);
    spikeClass{i} = spikeClass{i}(1:length(data{i}));
    acc(i) = MyClassify(data{i},spikeClass{i}(:));
 end
