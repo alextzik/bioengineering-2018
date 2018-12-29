@@ -46,8 +46,11 @@ for i=1:1:8
        count=count+1;
    end
    ks=2:15/2000:17;
-   %figure();
-   %plot(ks, measuredNumSpikes(i,:));
+   figure();
+   plot(ks, measuredNumSpikes(i,:));
+   title('Spikes vs k');
+   xlabel('k') ;
+   ylabel('Spikes') ;
     
 end
 
