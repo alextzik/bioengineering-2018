@@ -1,4 +1,5 @@
 # Bioengineering 2018
+The project consisted of spike recognition and classification. A method for identifying spikes was first required. The extraction of characteristics for correct classification of each spike as activity of a specific neutron was then completed.
 
 ## Comments
 
